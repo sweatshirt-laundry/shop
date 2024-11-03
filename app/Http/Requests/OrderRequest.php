@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class OrderRequest extends FormRequest
 {
@@ -40,5 +42,9 @@ class OrderRequest extends FormRequest
             "item.*.quantity.min" => "Item quantity must be at least 1",
             "item.*.quantity.integer" => "Item quantity must be an integer",
         ];
+    }
+    protected function failedValidation(Validator $validator)
+    {
+        throw new ValidationException($validator,response()->json($validator->errors(), 422));
     }
 }

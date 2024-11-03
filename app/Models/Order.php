@@ -4,14 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
     /** @use HasFactory<\Database\Factories\OrderFactory> */
     use HasFactory;
+
     protected $fillable = ['customer'];
-    public function items()
+
+    public function items(): HasMany
     {
-        $this->hasMany(Item::class);
+        return $this->hasMany(Item::class);
     }
 }

@@ -1,44 +1,70 @@
 <?php
 
-namespace App\Http\Api\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Order;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderRequest;
+use App\Models\Order;
 
 class OrderController extends Controller
 {
     public function index()
     {
         $orders = Order::all()->map(function ($order) {
-            unset($order->customer);
+            unset($order->created_at);
+            unset($order->updated_at);
+            $order->price = 0;
+
             return $order;
         });
+
         return response()->json($orders);
     }
+
     public function store(OrderRequest $request)
     {
         $validData = $request->validated();
         $order = Order::create([
-            "customer" => $validData["customer"],
+            'customer' => $validData['customer'],
         ]);
-        foreach ($validData["items"] as ["category" => $category, "quantity" => $quantity,]) {
+        if (! $order) {
+            return response()->json(['message' => 'Order not created'], 500);
+        }
+        foreach ($validData['items'] as ['category' => $category, 'quantity' => $quantity]) {
             $order->items()->create([
-                "category" => $category,
-                "quantity" => $quantity,
+                'category' => $category,
+                'quantity' => $quantity,
             ]);
         }
+
+        return response()->json([
+            'message' => 'Order created successfully',
+            'order' => $order,
+        ]);
     }
+
     public function show($id)
     {
-        return response()->json(Order::with('items')->findOrFail($id));
+        $order = Order::with('items')->find($id);
+        if (! $order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+        foreach ($order->items as $item) {
+            unset($item->created_at);
+            unset($item->updated_at);
+        }
+
+        return response()->json($order);
     }
+
     public function destroy($id)
     {
-        $order = Order::findOrFail($id);
+        $order = Order::find($id);
+        if (! $order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
 
-        // ? not required since items are deleted when order is deleted (specified on the item migration)
+        // ? not required since items are deleted when order is deleted (specified on the item migration - cascade on delete)
         // $order->items()->delete();
 
         $order->delete();

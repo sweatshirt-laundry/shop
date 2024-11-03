@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->enum('category', ['pants', 'shirt', 'jacket', 'bed-sheet']);
             $table->integer('quantity');
+            $table->boolean('clean')->default(false);
             $table->foreignIdFor(Order::class)->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
