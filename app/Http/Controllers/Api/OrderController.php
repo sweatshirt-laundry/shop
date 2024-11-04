@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderRequest;
 use App\Models\Order;
+use App\Services\RabbitMQService;
 
 class OrderController extends Controller
 {
+    public function __construct(private RabbitMQService $rabbitMQService) {}
     public function index()
     {
         $orders = Order::all()->map(function ($order) {
@@ -27,7 +29,7 @@ class OrderController extends Controller
         $order = Order::create([
             'customer' => $validData['customer'],
         ]);
-        if (! $order) {
+        if (!$order) {
             return response()->json(['message' => 'Order not created'], 500);
         }
         foreach ($validData['items'] as ['category' => $category, 'quantity' => $quantity]) {
@@ -36,7 +38,7 @@ class OrderController extends Controller
                 'quantity' => $quantity,
             ]);
         }
-
+        // $this->rabbitMQService->sendMessage($order->id);
         return response()->json([
             'message' => 'Order created successfully',
             'order' => $order,
